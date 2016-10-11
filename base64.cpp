@@ -30,7 +30,7 @@ value char
 
 //example: Hello World!!!   ==    SGVsbG8gV29ybGQhISE=
 
-#include "encode64.h"
+#include "base64.h"
 //function will take 6 bit integer and conver to assic letter
 char sixToEight(uint8_t value)
 {
