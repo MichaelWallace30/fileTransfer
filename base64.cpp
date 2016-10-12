@@ -25,56 +25,65 @@ value char
 15	P	31	f	47	v	63	/
 */
 
-//A = 65
+//A = 255
 //a = 97
 
 //example: Hello World!!!   ==    SGVsbG8gV29ybGQhISE=
 
 #include "base64.h"
-//function will take 6 bit integer and conver to assic letter
-char sixToEight(uint8_t value)
-{
-	if (value == 0) return '=';
-	if (value <= 90)
-	{
-		return value + 'A';
-	}
-	//else
-	return value + 'a';
 
-}
+char assciiBase64LookUp[64] =
+{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+  '0', '1', '2', '3', '4','5','6','7','8','9','+','/'};
 
-//function will take 8 bit letter and convert to 6 bit integer
-uint8_t EightToSix(char value)
+uint8_t base64AssciLookUp[255] =
 {
-	if (value == '=')return 0;
-	if (value <= 'Z')
-	{
-		return value - 'A';
-	}
-	//else
-	return value - 'a';
-}
+//    0,   1,   2,   3,   4,   5,   6,   7,   8,   9
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//0
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//10
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//20
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//30
+	255, 255, 255,  62, 255, 255, 255,  63,  52,  53,//40 
+	 54,  55,  56,  57,  58,  59,  60,  61, 255, 255,//50
+	255, 255, 255, 255, 255,   0,   1,   2,   3,   4,//60
+	  5,   6,   7,   8,   9,  10,  11,  12,  13,  14,//70
+	 15,  16,  17,  18,  19,  20,  21,  22,  23,  24,//80
+	255, 255, 255, 255, 255, 255, 255,  26,  27,  28,//90
+	 29,  30,  31,  32,  33,  34,  35,  36,  37,  38,//100
+	 39,  40,  41,  42,  43,  44,  45,  46,  47,  48,//110
+	 49,  50,  51, 255, 255, 255, 255, 255, 255, 255,//120
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//130
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//140
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//150
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//160
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//170
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//180
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//190
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//200
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//210
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//220
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//230
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//240
+	255, 255, 255, 255, 255//250
+};
+
+
 
 #include <vector>
 std::vector<char>* encode64(std::vector<char>* buffer)
 {
-
+	int padding = 0;
 	//check for padding and pad
 	while ((*buffer).size() % BLOCK_SIZE != 0)
 	{
 		buffer->push_back(0);
+		padding++;
 	}
 
 	char array[BLOCK_SIZE_64] = { 0 };
-
-	array[0] = ((*buffer)[0] & 0xfc) >> 2;
-	array[1] = (((*buffer)[0] & 0x03) << 4) + (((*buffer)[1] & 0xf0) >> 4);
-	array[2] = (((*buffer)[1] & 0x0f) << 2) + (((*buffer)[2] & 0xc0) >> 6);
-	array[3] = (*buffer)[2] & 0x3f;
-
 	//CALUCALTE NEW SIZE of vector
-	int newSize = buffer->size();	
+	int newSize = buffer->size();
 	if (newSize % BLOCK_SIZE != 0)
 	{
 		newSize += newSize % BLOCK_SIZE;
@@ -84,12 +93,26 @@ std::vector<char>* encode64(std::vector<char>* buffer)
 	//COPY to new vector
 	std::vector<char>* buffer2 = new std::vector<char>;
 	buffer2->resize(newSize);
-	
-	(*buffer2)[0] = sixToEight(array[0]);
-	(*buffer2)[1] = sixToEight(array[1]);
-	(*buffer2)[2] = sixToEight(array[2]);
-	(*buffer2)[3] = sixToEight(array[3]);
 
+
+	for (int i = 0; i < buffer->size() /3; i++)
+	{
+		array[0] = ((*buffer)[0 + (i * 3)] & 0xfc) >> 2;
+		array[1] = (((*buffer)[0 + (i * 3)] & 0x03) << 4) + (((*buffer)[1 + (i * 3)] & 0xf0) >> 4);
+		array[2] = (((*buffer)[1 + (i * 3)] & 0x0f) << 2) + (((*buffer)[2 + (i * 3)] & 0xc0) >> 6);
+		array[3] = (*buffer)[2 + (i * 3)] & 0x3f;
+
+
+		(*buffer2)[0 + (i * 4)] = assciiBase64LookUp[array[0]];
+		(*buffer2)[1 + (i * 4)] = assciiBase64LookUp[array[1]];
+		(*buffer2)[2 + (i * 4)] = assciiBase64LookUp[array[2]];
+		(*buffer2)[3 + (i * 4)] = assciiBase64LookUp[array[3]];
+	}
+
+	for (int x = 1; x <= padding; x++)
+	{
+		(*buffer2)[newSize - x] = '=';
+	}
 
 	//delte old vector
 	delete buffer;
@@ -101,3 +124,4 @@ std::vector<char>* decode64(std::vector<char>* buffer)
 {
 	return NULL;
 }
+

@@ -1,12 +1,13 @@
 #include "encryption.h"
-#include "encode64.h"
+#include "base64.h"
+
 #include <iostream>
-
-
 using namespace std;
+
 
 int main()
 {
+
 	/*
 	// all xor encryptino test
 	int const SIZE = 16;
@@ -38,14 +39,14 @@ int main()
 	*/
 
 	//Hel == SGVs
-	vector<char>* buffer = new vector<char>{ 'A', 'B' };
+	
+	vector<char>* buffer = new vector<char>{ 'A', 'B', 'C', 'D', 'E', 'F', 'G' };
 
 	buffer = encode64(buffer);
 	for (int x = 0; x < buffer->size(); x++)
 	{
 		cout << (*buffer)[x];
 	}
-	cout << endl;
-	
-	
+	cout << endl;	
 }
+
