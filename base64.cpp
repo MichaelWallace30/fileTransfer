@@ -1,3 +1,5 @@
+#include<iostream>
+using namespace std;
 /*
 encode: 6bit to 8bit
 decode: 8bit to 6bit
@@ -122,6 +124,38 @@ std::vector<char>* encode64(std::vector<char>* buffer)
 
 std::vector<char>* decode64(std::vector<char>* buffer)
 {
-	return NULL;
+	std::vector<char>* buffer2 = new std::vector<char>;
+	int newSize = (buffer->size() / BLOCK_SIZE_64) * BLOCK_SIZE;
+	buffer2->resize(newSize);
+	
+	char array[BLOCK_SIZE] = { 0 };
+
+	int sizeReduction = 0;
+	for (int i = buffer->size() - 1; i > buffer->size() - BLOCK_SIZE_64; i --)
+	{
+		if ((*buffer)[i] == '=')
+		{
+			sizeReduction++;
+		}
+	}
+
+	for (int i = 0; i < newSize / 3; i++)
+	{
+		array[0] = (((base64AssciLookUp[(*buffer)[0 + i * 4]] & 0x3f) << 2) + ((base64AssciLookUp[(*buffer)[1 + i * 4]] & 0x30) >> 4));
+		array[1] = (((base64AssciLookUp[(*buffer)[1 + i * 4]] & 0x0F) << 4) + ((base64AssciLookUp[(*buffer)[2 + i * 4]] & 0x3C) >> 2));
+		array[2] = (((base64AssciLookUp[(*buffer)[2 + i * 4]] & 0x03) << 6) + (base64AssciLookUp[(*buffer)[3 + i * 4]] & 0x3f));
+		
+		(*buffer2)[0 + i * 3] = array[0];
+		(*buffer2)[1 + i * 3] = array[1];
+		(*buffer2)[2 + i * 3] = array[2];
+	}
+
+	for (int x = 0; x < sizeReduction; x++)
+	{
+		buffer2->pop_back();
+	}
+	
+	delete buffer;
+	return buffer2;
 }
 

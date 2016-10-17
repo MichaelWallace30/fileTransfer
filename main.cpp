@@ -40,9 +40,13 @@ int main()
 
 	//Hel == SGVs
 	
-	vector<char>* buffer = new vector<char>{ 'A', 'B', 'C', 'D', 'E', 'F', 'G' };
+	vector<char>* buffer = new vector<char>{ 'A', 'B', 'C' , 'D', 'E', 'F', 'G' };
 
 	buffer = encode64(buffer);
+
+	buffer = decode64(buffer);
+
+	cout << buffer->size() << endl;
 	for (int x = 0; x < buffer->size(); x++)
 	{
 		cout << (*buffer)[x];
