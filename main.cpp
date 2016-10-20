@@ -40,7 +40,7 @@ int main()
 
 	//Hel == SGVs
 	
-	vector<char>* buffer = new vector<char>{ 'A', 'B', 'C' , 'D', 'E', 'F', 'G' };
+	vector<char>* buffer = new vector<char>{ 'A', 'B', 'C' , 'D', '-', 'F', 'G', 'h'};
 
 	buffer = encode64(buffer);
 
