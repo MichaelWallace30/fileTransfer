@@ -14,8 +14,8 @@ client.cpp
 server.cpp
 
 encryption.cpp
-main_encryption_encode.cpp
-#main_client_server.cpp
+#main_encryption_encode.cpp
+main_client_server.cpp
 )
 
 

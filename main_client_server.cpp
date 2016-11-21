@@ -20,7 +20,7 @@ int main()
     */
     
    client myServer;
-   myServer.init("192.168.1.121", 8888);
+   myServer.init("127.0.0.1", 5001);
     
   
     

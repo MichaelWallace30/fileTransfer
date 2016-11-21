@@ -18,7 +18,7 @@
 	#include <signal.h>
 #endif
 
-
+#include<stdlib.h>
 #include<stdio.h>
 #include <chrono>
 #include <iostream>

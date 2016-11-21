@@ -44,10 +44,10 @@ bool server::init(std::string ip, int port)
     serv.sin_family = AF_INET;    
     const char* tempclient_ip = ip.c_str();
     serv.sin_addr.s_addr = inet_addr(tempclient_ip);
-    serv.sin_port = htons(8888);
+    serv.sin_port = htons(port);
 
     //Bind
-    if (bind(socket_desc, (struct sockaddr *)&serv, sizeof(server)) < 0)
+    if (bind(socket_desc, (struct sockaddr *)&serv, sizeof(serv)) < 0)
     {
         //print the error message
         perror("bind failed. Error");
