@@ -1,16 +1,33 @@
-#pragma once
+#ifndef CLINET_H
+#define CLIENT_H
+
+#ifdef WIN32
+	#include<winsock2.h>
+	#include<windows.h>
+	#include <WS2tcpip.h>
+	#pragma comment(lib,"ws2_32.lib") //Winsock Library
+#else
+	#include <errno.h>
+	#include <string.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+	#include <arpa/inet.h>
+	#include <sys/wait.h>
+	#include <signal.h>
+#endif
+
+
 #include<stdio.h>
-#include<winsock2.h>
-#include<windows.h>
 #include <chrono>
 #include <iostream>
-#include <WS2tcpip.h>
 #include <vector>
 #include <thread>
 #include <mutex>
 #include <queue>
 
-#pragma comment(lib,"ws2_32.lib") //Winsock Library
+
 
 #define MAX_BUFFER 20000
 
@@ -41,4 +58,4 @@ public:
     void sendVector(std::vector<char> * buffer);
     std::vector<char>* recvVector(std::vector<char> * buffer);
 };
-
+#endif
