@@ -9,12 +9,24 @@ get_filename_component(PARENT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
 
 
 add_executable(ftp
+base64.h
+client.h
+server.h
+hash.h
+encryption.h
+
+packetHeader.h
+fileManager.h
+
 base64.cpp
 client.cpp
 server.cpp
 
 hash.cpp
 encryption.cpp
+
+fileManager.cpp
+
 #main_encryption_encode.cpp
 #main_client_server.cpp
 main_hash.cpp
