@@ -13,9 +13,11 @@ base64.cpp
 client.cpp
 server.cpp
 
+hash.cpp
 encryption.cpp
 #main_encryption_encode.cpp
-main_client_server.cpp
+#main_client_server.cpp
+main_hash.cpp
 )
 
 
