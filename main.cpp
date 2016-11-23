@@ -24,7 +24,7 @@ int main()
 
         //create client
         client myClient;
-        myClient.init("127.0.0.1", 8888);
+        myClient.init("192.168.1.7", 8888);
 
         
         int maxAttempts = 3;
@@ -234,6 +234,11 @@ int main()
                     {
                         recvVector->push_back((*data)[x + HEADER_SIZE]);
                     }
+
+                    //check hash
+                    messageHeader responseHeader{ SUCCESS, 0, 0 };
+                    responseHeader.serialize(data);
+                    myServer.sendVector(data);
                 }
                 else
                 {
