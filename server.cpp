@@ -118,11 +118,8 @@ void server::sendVector(std::vector<char> * buffer)
 
 std::vector<char>* server::recvVector(std::vector<char> * buffer)
 {    
-    if (recvQueue.size() == 0)
-    {
-        buffer->resize(0);
-        return buffer;
-    }
+    while (recvQueue.size() == 0); //just wait for ever
+    
     std::vector<char> temp = recvQueue.front();
     g_mutex.lock();
     recvQueue.pop();//mutex

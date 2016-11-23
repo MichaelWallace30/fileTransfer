@@ -29,12 +29,12 @@ public:
 
     void setName(std::string stringName)
     {
-        int x = 0;
-        for (; x < stringName.length(); x++)
+        
+        memset(&name[0], 0, MAX_LENGTH);
+        for (int x = 0; x < stringName.length(); x++)
         {
             name[x] = stringName[x];
-        }
-        name[x] = '\0';
+        }        
     }
 
     std::string getName()
@@ -51,12 +51,11 @@ public:
 
     void setPass(std::string stringPass)
     {
-        int x = 0;
-        for (; x < stringPass.length(); x++)
+        memset(&pass[0], 0, MAX_LENGTH);
+        for (int x = 0; x < stringPass.length(); x++)
         {
             pass[x] = stringPass[x];
-        }
-        name[x] = '\0';
+        }        
     }
 
     std::string getPass()

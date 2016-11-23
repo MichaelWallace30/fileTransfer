@@ -6,7 +6,7 @@
 #ifndef _HEADER_PACKET_H
 #define _HEADER_PACKET_H
 
-enum packetType {AUTH, START, END, SUCCESS, FAILED};
+enum packetType {AUTH, START, END, SUCCESS, FAILED, PACKET};
 
 #define HEADER_SIZE 12
 class messageHeader
@@ -50,6 +50,7 @@ public:
     {
 
         //wipe buffer
+        delete buffer;
         buffer = new std::vector<char>();
         char arr[HEADER_SIZE] = { 0 };
 

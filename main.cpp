@@ -20,82 +20,156 @@ int main()
         //user manager is used to add new user and validate exsistsing users
         userManager usermanager{};
         string name, pass;
-        //get user info
-        string name2, pass2;
-        cout << "Name: ";
-        cin >> name;
-        cout << "Password: ";
-        cin >> pass;
 
         //create client
         client myClient;
         myClient.init("127.0.0.1", 8888);
 
         
-        //add user name and pass to data
-        userAuth myUserAuth;
-        myUserAuth.base64 = false;
-        myUserAuth.setName(name);
-        myUserAuth.setPass(pass);        
+        int maxAttempts = 3;
+        int attempts = 0;
+        bool done = false;
 
-        messageHeader myHeader{ AUTH, 0, sizeof(myUserAuth)};
-        myHeader.serialize(data);
-        myUserAuth.serialize(data);
-
-        //send user name and data
-        myClient.sendVector(data);
-
-
-        //wait for response
-        myClient.recvVector(data);
-        messageHeader authUserHeader;
-        authUserHeader.deserialize(data);
-
-        if (authUserHeader.messageType == SUCCESS)
+        while (attempts < maxAttempts && !done)
         {
-            cout << "succes" << endl;
+            //get user info
+            cout << "Name: ";
+            cin >> name;
+            cout << "Password: ";
+            cin >> pass;
+
+            //add user name and pass to data
+            userAuth myUserAuth;
+            myUserAuth.base64 = false;
+            myUserAuth.setName(name);
+            myUserAuth.setPass(pass);
+
+            messageHeader myHeader{ AUTH, 0, sizeof(myUserAuth) };
+            data = myHeader.serialize(data);
+            data = myUserAuth.serialize(data);
+
+            //send user name and data
+            //append hash fist
+            myClient.sendVector(data);
+
+
+            //wait for response
+            //check hash fist
+            myClient.recvVector(data);
+            messageHeader authUserHeader;
+            authUserHeader.deserialize(data);
+
+            if (authUserHeader.messageType == SUCCESS)
+            {
+                cout << "auth succes" << endl;
+                done = true;
+            }
+            else if (authUserHeader.messageType == FAILED)
+            {
+                cout << " auth failure" << endl;
+            }
+            attempts++;
+        }//end attempts  
+    
+
+        if (done)
+        {
             //move on
+            //temp data
+            messageHeader myHeader{ PACKET, 1, 10000 };
+            data = myHeader.serialize(data);
+
+            for (int x = 0; x < 10000; x++)
+            {
+                data->push_back(x);
+            }
+
+            myClient.sendVector(data);
+
+            myClient.recvVector(data);
+
+            myHeader.deserialize(data);
+
         }
-        else if (authUserHeader.messageType == FAILED)
+        else//auth failure
         {
-            cout << " auth failure" << endl;
+            //we are done exit program
         }
         
-    }
+    }//server mode
     else
     {
         //CREATE SERVER 
         server myServer;
-        myServer.init("127.0.0.1", 8888);
+        myServer.init("192.168.1.7", 8888);
 
-        //wait for message
-        myServer.recvVector(data);
+        int maxAttempts = 3;
+        int attempts = 0;
+        bool done = false;
 
-        messageHeader myHeader;
-        myHeader.deserialize(data);
-
-        if (myHeader.messageType == AUTH)
+        while (attempts < maxAttempts && !done)
         {
-            userManager myUserManager;
-            userAuth myUserAuth;
-            myUserAuth.deserialize(data, HEADER_SIZE);
-            bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass());
+            //wait for message  
+            //check hash fist
+            myServer.recvVector(data);
 
-            if (validUser)
-            {
-                messageHeader authHeader{ SUCCESS, 0, 0 };
-                authHeader.serialize(data);
-                myServer.sendVector(data);
+            messageHeader myHeader;
+            myHeader.deserialize(data);
 
-            }
-            else
+            if (myHeader.messageType == AUTH)
             {
-                messageHeader authHeader{ FAILED, 0, 0 };
-                authHeader.serialize(data);
-                myServer.sendVector(data);
+                userManager myUserManager;
+                userAuth myUserAuth;
+                myUserAuth.deserialize(data, HEADER_SIZE);
+                bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass());
+
+                if (validUser)
+                {
+                    messageHeader authHeader{ SUCCESS, 0, 0 };
+                    data = authHeader.serialize(data);
+                    //append hash fist
+                    myServer.sendVector(data);
+                    done = true;
+                    cout << " auth success" << endl;
+
+                }
+                else
+                {
+                    messageHeader authHeader{ FAILED, 0, 0 };
+                    data = authHeader.serialize(data);
+                    //append hash fist
+                    myServer.sendVector(data);
+                    cout << " auth failure" << endl;
+
+                }
             }
+            attempts++;
+        }//end attempts
+
+        if (done)
+        {
+            //move on
+
+            messageHeader recvHeader;
+            myServer.recvVector(data);
+            recvHeader.deserialize(data);
+
+
+            std::vector<char> *packet = new std::vector<char>();
+
+            for (int x = 0; x < recvHeader.dataLength; x++)
+            {
+                packet->push_back((*data)[x + HEADER_SIZE]);
+                cout << (*packet)[x] << endl;
+            }
+
 
             
+            
+        }
+        else//auth failure
+        {
+            //we are done exit program
         }
     }
 
