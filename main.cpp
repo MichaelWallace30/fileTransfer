@@ -66,7 +66,7 @@ int main()
             }
             else if (authUserHeader.messageType == FAILED)
             {
-                cout << " auth failure" << endl;
+                cout << "auth failure" << endl;
             }
             attempts++;
         }//end attempts  
@@ -94,6 +94,7 @@ int main()
         else//auth failure
         {
             //we are done exit program
+            cout << "auth failure program will exit" << endl;
         }
         
     }//server mode
@@ -130,7 +131,7 @@ int main()
                     //append hash fist
                     myServer.sendVector(data);
                     done = true;
-                    cout << " auth success" << endl;
+                    cout << "auth success" << endl;
 
                 }
                 else
@@ -139,7 +140,7 @@ int main()
                     data = authHeader.serialize(data);
                     //append hash fist
                     myServer.sendVector(data);
-                    cout << " auth failure" << endl;
+                    cout << "auth failure" << endl;
 
                 }
             }
@@ -160,7 +161,7 @@ int main()
             for (int x = 0; x < recvHeader.dataLength; x++)
             {
                 packet->push_back((*data)[x + HEADER_SIZE]);
-                cout << (*packet)[x] << endl;
+                cout << (char)(*packet)[x] << endl;
             }
 
 
@@ -170,6 +171,7 @@ int main()
         else//auth failure
         {
             //we are done exit program
+            cout << "auth failure program will exit" << endl;
         }
     }
 

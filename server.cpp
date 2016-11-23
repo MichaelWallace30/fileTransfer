@@ -125,6 +125,7 @@ std::vector<char>* server::recvVector(std::vector<char> * buffer)
     recvQueue.pop();//mutex
     g_mutex.unlock();    
     //deep copy
+    buffer->resize(0);
     for (int x = 0; x < temp.size(); x++)
     {
         buffer->push_back(temp[x]);
