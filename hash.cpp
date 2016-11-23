@@ -21,16 +21,15 @@ void seed_rand(){
 
 //this adds a salt and appends it
 static const char salt_chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-std::vector<char>* salt_and_hash(std::vector<char>* s){
+std::string salt_and_hash(std::string s){
     std::stringstream ss;
-    s->push_back(':');
     for(int i = 0; i < 6; ++i)
-        s->push_back(salt_chars[std::rand()%(sizeof(salt_chars)-1)]);
-    std::cout << "Salted string: ";
-    for(char c : *s)
-        std::cout << c;
-    std::cout << std::endl;
-    return hash_and_append(s);
+        ss << salt_chars[std::rand()%(sizeof(salt_chars)-1)];
+    s.append(":");
+    s.append(ss.str());
+    std::vector<char> in;
+    for (char c : s) in.push_back(c);
+    return hash(&in);
 }
 
 //appends the hash to the vector

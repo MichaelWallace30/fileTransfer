@@ -1,5 +1,5 @@
 #include "userManager.h"
-
+#define SALT_SIZE 6
 
 userManager::userManager()
 {
@@ -42,6 +42,7 @@ bool userManager::validate(std::string user, std::string pass)
 
 bool userManager::create(std::string user, std::string pass)
 {
+    
     for (int x = 0; x < user.length(); x++)
     {
         if (user[x] == ' ')
@@ -51,6 +52,7 @@ bool userManager::create(std::string user, std::string pass)
         }
     }
 
+    
     std::fstream userFile;
     userFile.open(FILE_NAME, std::ios_base::app);
 

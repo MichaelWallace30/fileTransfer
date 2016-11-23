@@ -1,3 +1,4 @@
+#define WIN32 
 #include "server.h"
 #include "client.h"
 #include "userManager.h"
@@ -11,15 +12,11 @@
 
 #include <iostream>
 using namespace std;
-bool useBase64 = false;
+bool useBase64 = true;
 
 
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
-    if (useBase64)
-    {
-        buffer = encode64(buffer);
-    }
 
     buffer = encryption(buffer, key);
     return buffer;
@@ -27,10 +24,6 @@ std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bo
 
 std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
-    if (useBase64)
-    {
-        buffer = decode64(buffer);
-    }
     buffer = encryption(buffer, key);
 
     return buffer;
@@ -109,15 +102,19 @@ int main()
         if (done)
         {
             //move on
-            //temp data            
+            //temp data             load file
             data->resize(0);
-            for (int x = 0; x < 10000; x++)
+            for (int x = 0; x < 100; x++)
             {
-                data->push_back(x);
+                data->push_back('*');
+            }
+            if (useBase64)
+            {
+                data = encode64(data);
             }
             
             int maxPacketSize = 100;//bytes
-            int size = 10000;
+            int size = 100;
 
             int numPackets = size / maxPacketSize;
 
@@ -143,6 +140,7 @@ int main()
 
 
                 buffer = encodeMessage(buffer, keyString, useBase64);
+                myHeader.dataLength = buffer->size();
 
                 packetSucces = false;
                 while (attempts < maxAttempts && !packetSucces)
@@ -292,7 +290,11 @@ int main()
                 }
             }
 
-                       
+
+            if (useBase64)
+            {
+                recvVector = decode64(recvVector);
+            }
             
             for (int x = 0; x < recvVector->size(); x++)
             {
