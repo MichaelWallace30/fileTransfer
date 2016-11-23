@@ -3,6 +3,7 @@
 #include "userManager.h"
 #include "packetHeader.h"
 
+#include <stdlib.h>
 
 #include <iostream>
 using namespace std;
@@ -66,7 +67,7 @@ int main()
             }
             else if (authUserHeader.messageType == FAILED)
             {
-                cout << "auth failure" << endl;
+                cout << "auth failure" << endl;                
             }
             attempts++;
         }//end attempts  
@@ -75,26 +76,93 @@ int main()
         if (done)
         {
             //move on
-            //temp data
-            messageHeader myHeader{ PACKET, 1, 10000 };
-            data = myHeader.serialize(data);
-
+            //temp data            
+            data->resize(0);
             for (int x = 0; x < 10000; x++)
             {
                 data->push_back(x);
             }
+            
+            int maxPacketSize = 100;//bytes
+            int size = 10000;
 
-            myClient.sendVector(data);
+            int numPackets = size / maxPacketSize;
 
-            myClient.recvVector(data);
+            done = false;
+            bool packetSucces = false;
+            std::vector<char>* buffer = new std::vector<char>();
+            std::vector<char>* recvBuffer = new std::vector<char>();
+            int offset = 0;
+            int packetNumber = 1;
+            int attempts = 0;
+            int maxAttempts = 3;
+            
+            while (!done)
+            {
+                int currentPacketSize = (size - (packetNumber * maxPacketSize)) % maxPacketSize;
+                messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize};
+                buffer->resize(0);
+                buffer= myHeader.serialize(buffer);
+                for (int x = 0; x < currentPacketSize; x++)
+                {
+                    buffer->push_back((*data)[x + offset]);
+                }
 
-            myHeader.deserialize(data);
+                while (attempts < maxAttempts && !packetSucces)
+                {
+
+                    //send packet
+                    //hash
+                    myClient.sendVector(buffer);
+
+                    //wait for response
+                    //hash
+                    recvBuffer->resize(0);
+                    myClient.recvVector(recvBuffer);
+                    messageHeader recvHeader;
+                    recvHeader.deserialize(recvBuffer);
+                    if (recvHeader.messageType == SUCCESS)
+                    {
+                        offset += currentPacketSize;
+                        packetSucces = true;
+                        attempts = 0;
+                        if (packetNumber == numPackets)done = true;
+                        packetNumber++;
+                        
+                    }
+                    else
+                    {
+                        attempts++;
+                        packetSucces = false;
+                    }
+                }
+
+                if (!packetSucces)
+                {
+                    //end program
+                    cout << "Packet corruption progam done." << endl;
+                    exit(0);
+                }
+
+            }
+
+            if (done)
+            {
+                data->resize(0);
+                messageHeader myHeader{ END, 0, 0 };
+                data = myHeader.serialize(data);
+                myClient.sendVector(data);
+                exit(1);
+            }
+
+
 
         }
         else//auth failure
         {
             //we are done exit program
             cout << "auth failure program will exit" << endl;
+            exit(0);
         }
         
     }//server mode
@@ -150,21 +218,35 @@ int main()
         if (done)
         {
             //move on
+            done = false;
+            std::vector<char>* recvVector = new std::vector<char>();
 
-            messageHeader recvHeader;
-            myServer.recvVector(data);
-            recvHeader.deserialize(data);
-
-
-            std::vector<char> *packet = new std::vector<char>();
-
-            for (int x = 0; x < recvHeader.dataLength; x++)
+            while (!done)
             {
-                packet->push_back((*data)[x + HEADER_SIZE]);
-                cout << (char)(*packet)[x] << endl;
+            
+                messageHeader recvHeader;
+                myServer.recvVector(data);
+                recvHeader.deserialize(data);                
+
+                if (recvHeader.messageType != END)
+                {
+                    for (int x = 0; x < recvHeader.dataLength; x++)
+                    {
+                        recvVector->push_back((*data)[x + HEADER_SIZE]);
+                    }
+                }
+                else
+                {
+                    done = true;
+                }
             }
 
-
+                       
+            
+            for (int x = 0; x < recvVector->size(); x++)
+            {
+                cout << (char)(*recvVector)[x] << endl;
+            }
             
             
         }
@@ -172,6 +254,7 @@ int main()
         {
             //we are done exit program
             cout << "auth failure program will exit" << endl;
+            exit(0);
         }
     }
 
