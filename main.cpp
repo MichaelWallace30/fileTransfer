@@ -99,7 +99,7 @@ int main()
             
             while (!done)
             {
-                int currentPacketSize = (size - (packetNumber * maxPacketSize)) % maxPacketSize;
+                int currentPacketSize = (size - (packetNumber * maxPacketSize));
                 messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize};
                 buffer->resize(0);
                 buffer= myHeader.serialize(buffer);
@@ -108,6 +108,7 @@ int main()
                     buffer->push_back((*data)[x + offset]);
                 }
 
+                packetSucces = false;
                 while (attempts < maxAttempts && !packetSucces)
                 {
 
@@ -235,14 +236,14 @@ int main()
                         recvVector->push_back((*data)[x + HEADER_SIZE]);
                     }
 
-                    //check hash
+                    //check hash                    
                     messageHeader responseHeader{ SUCCESS, 0, 0 };
-                    responseHeader.serialize(data);
+                    data = responseHeader.serialize(data);
                     myServer.sendVector(data);
                 }
                 else
                 {
-                    done = true;
+                    done = true;                    
                 }
             }
 
@@ -252,7 +253,7 @@ int main()
             {
                 cout << (char)(*recvVector)[x] << endl;
             }
-            
+            exit(1);
             
         }
         else//auth failure
