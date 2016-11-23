@@ -2,14 +2,47 @@
 #include "client.h"
 #include "userManager.h"
 #include "packetHeader.h"
+#include "base64.h"
+#include "encryption.h"
+#include "hash.h"
+#include "fileManager.h"
 
 #include <stdlib.h>
 
 #include <iostream>
 using namespace std;
+bool useBase64 = false;
+
+
+std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
+{
+    if (useBase64)
+    {
+        buffer = encode64(buffer);
+    }
+
+    buffer = encryption(buffer, key);
+    return buffer;
+}
+
+std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
+{
+    if (useBase64)
+    {
+        buffer = decode64(buffer);
+    }
+    buffer = encryption(buffer, key);
+
+    return buffer;
+}
 
 int main()
 {
+
+    std::string keyString = readKey("key.txt");
+
+
+
     std::vector<char> * data = new std::vector<char>();
 
     bool isClient;
@@ -24,7 +57,7 @@ int main()
 
         //create client
         client myClient;
-        myClient.init("192.168.1.7", 8888);
+        myClient.init("127.0.0.1", 8888);
 
         
         int maxAttempts = 3;
@@ -50,7 +83,7 @@ int main()
             data = myUserAuth.serialize(data);
 
             //send user name and data
-            //append hash fist
+            //append hash fist            
             myClient.sendVector(data);
 
 
@@ -99,7 +132,7 @@ int main()
             
             while (!done)
             {
-                int currentPacketSize = (size - (packetNumber * maxPacketSize));
+                int currentPacketSize = 100;
                 messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize};
                 buffer->resize(0);
                 buffer= myHeader.serialize(buffer);
@@ -107,6 +140,9 @@ int main()
                 {
                     buffer->push_back((*data)[x + offset]);
                 }
+
+
+                buffer = encodeMessage(buffer, keyString, useBase64);
 
                 packetSucces = false;
                 while (attempts < maxAttempts && !packetSucces)
@@ -171,7 +207,7 @@ int main()
     {
         //CREATE SERVER 
         server myServer;
-        myServer.init("192.168.1.7", 8888);
+        myServer.init("127.0.0.1", 8888);
 
         int maxAttempts = 3;
         int attempts = 0;
@@ -231,9 +267,18 @@ int main()
 
                 if (recvHeader.messageType != END)
                 {
+                    std::vector<char>* tempData = new std::vector<char>();
+                    
                     for (int x = 0; x < recvHeader.dataLength; x++)
                     {
-                        recvVector->push_back((*data)[x + HEADER_SIZE]);
+                        tempData->push_back((*data)[x + HEADER_SIZE]);
+                    }
+
+                    tempData = decodeMessage(tempData, keyString, useBase64);
+
+                    for (int x = 0; x < recvHeader.dataLength; x++)
+                    {
+                        recvVector->push_back((*tempData)[x]);
                     }
 
                     //check hash                    
