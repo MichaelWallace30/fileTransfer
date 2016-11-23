@@ -34,6 +34,8 @@ userManager.cpp
 #main_client_server.cpp
 #main_hash.cpp
 main.cpp
+
+user.txt
 )
 
 
