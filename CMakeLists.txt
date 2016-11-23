@@ -15,8 +15,10 @@ server.h
 hash.h
 encryption.h
 
+
 packetHeader.h
 fileManager.h
+userManager.h
 
 base64.cpp
 client.cpp
@@ -26,10 +28,12 @@ hash.cpp
 encryption.cpp
 
 fileManager.cpp
+userManager.cpp
 
 #main_encryption_encode.cpp
 #main_client_server.cpp
-main_hash.cpp
+#main_hash.cpp
+main.cpp
 )
 
 

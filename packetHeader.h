@@ -6,7 +6,7 @@
 #ifndef _HEADER_PACKET_H
 #define _HEADER_PACKET_H
 
-enum packetType {START, END, SUCCESS, FAILED};
+enum packetType {AUTH, START, END, SUCCESS, FAILED};
 
 #define HEADER_SIZE 12
 class messageHeader

@@ -6,10 +6,12 @@
 #include <sstream>
 #include <ctime>
 #include "hash.h"
+#include <string>
 
 // Example Usage
 int main(){
 
+    /*
     std::vector<char> in = {'T', 'e', 's', 't', '1' };
     for(char c : in) std::cout << c;
     std::cout << std::endl;
@@ -42,7 +44,13 @@ int main(){
     std::cout << "Hash = ";
     for(char c : out) std::cout << c;
     std::cout << std::endl;
+    */
 
+
+
+
+
+    std::cout << passWord << std::endl;
     return 0;
 }
 
