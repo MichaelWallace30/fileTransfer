@@ -51,7 +51,7 @@ void client::clientThread()
 
 bool client::init(std::string ip, int port)
 {
-#ifdef WIN32
+#ifndef __linux
     WSADATA wsa;
     //Initialise winsock
     printf("\nInitialising Winsock...");

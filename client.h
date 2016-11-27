@@ -1,7 +1,7 @@
 #ifndef CLINET_H
 #define CLIENT_H
 
-#ifdef WIN32
+#ifndef __linux
 	#include<winsock2.h>
 	#include<windows.h>
 	#include <WS2tcpip.h>

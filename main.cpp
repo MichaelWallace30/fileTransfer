@@ -1,4 +1,3 @@
-#define WIN32 
 #include "server.h"
 #include "client.h"
 #include "userManager.h"
