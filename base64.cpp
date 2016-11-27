@@ -34,43 +34,7 @@ value char
 
 #include "base64.h"
 
-char assciiBase64LookUp[64] =
-{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-  '0', '1', '2', '3', '4','5','6','7','8','9','+','/'};
-
-uint8_t base64AssciLookUp[255] =
-{
-//    0,   1,   2,   3,   4,   5,   6,   7,   8,   9
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//0
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//10
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//20
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//30
-	255, 255, 255,  62, 255, 255, 255,  63,  52,  53,//40 
-	 54,  55,  56,  57,  58,  59,  60,  61, 255, 255,//50
-	255, 255, 255, 255, 255,   0,   1,   2,   3,   4,//60
-	  5,   6,   7,   8,   9,  10,  11,  12,  13,  14,//70
-	 15,  16,  17,  18,  19,  20,  21,  22,  23,  24,//80
-	255, 255, 255, 255, 255, 255, 255,  26,  27,  28,//90
-	 29,  30,  31,  32,  33,  34,  35,  36,  37,  38,//100
-	 39,  40,  41,  42,  43,  44,  45,  46,  47,  48,//110
-	 49,  50,  51, 255, 255, 255, 255, 255, 255, 255,//120
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//130
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//140
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//150
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//160
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//170
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//180
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//190
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//200
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//210
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//220
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//230
-	255, 255, 255, 255, 255, 255, 255, 255, 255, 255,//240
-	255, 255, 255, 255, 255//250
-};
-
-
+const std::string assciiBase64LookUp ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 #include <vector>
 std::vector<char>* encode64(std::vector<char>* buffer)
@@ -146,9 +110,9 @@ std::vector<char>* decode64(std::vector<char>* buffer)
 	for (int i = 0; i < newSize / 3; i++)
 	{
 		int index = i * 3;
-		(*buffer2)[index++] = (((base64AssciLookUp[(*buffer)[0 + i * 4]] & 0x3f) << 2) + ((base64AssciLookUp[(*buffer)[1 + i * 4]] & 0x30) >> 4));
-		if(index < (newSize - sizeReduction))(*buffer2)[index++] = (((base64AssciLookUp[(*buffer)[1 + i * 4]] & 0x0F) << 4) + ((base64AssciLookUp[(*buffer)[2 + i * 4]] & 0x3C) >> 2));
-		if(index < (newSize - sizeReduction))(*buffer2)[index] = (((base64AssciLookUp[(*buffer)[2 + i * 4]] & 0x03) << 6) + (base64AssciLookUp[(*buffer)[3 + i * 4]] & 0x3f));
+		(*buffer2)[index++] = (((assciiBase64LookUp.find((*buffer)[0 + i * 4]) & 0x3f) << 2) + ((assciiBase64LookUp.find((*buffer)[1 + i * 4]) & 0x30) >> 4));
+		if(index < (newSize - sizeReduction))(*buffer2)[index++] = (((assciiBase64LookUp.find((*buffer)[1 + i * 4]) & 0x0F) << 4) + ((assciiBase64LookUp.find((*buffer)[2 + i * 4]) & 0x3C) >> 2));
+		if(index < (newSize - sizeReduction))(*buffer2)[index] = (((assciiBase64LookUp.find((*buffer)[2 + i * 4]) & 0x03) << 6) + (assciiBase64LookUp.find((*buffer)[3 + i * 4]) & 0x3f));
 	}
 
 	//delete old vector buffer return new

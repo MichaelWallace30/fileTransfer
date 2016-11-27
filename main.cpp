@@ -11,28 +11,31 @@
 
 #include <iostream>
 using namespace std;
-bool useBase64 = false;
+bool useBase64 = true;
 
 
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
+
+    buffer = encryption(buffer, key);
+
     if (useBase64)
     {
         buffer = encode64(buffer);
     }
-    buffer = encryption(buffer, key);
     return buffer;
 }
 
 std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
 
-    buffer = encryption(buffer, key);
+
     if (useBase64)
     {
         buffer = decode64(buffer);
     }
 
+    buffer = encryption(buffer, key);
     return buffer;
 }
 
@@ -147,8 +150,9 @@ int main()
                 //2. Encrypt
                 //3. (Optionally) Base64 encode
                 buffer = hash_and_append(buffer);
-
                 buffer = encodeMessage(buffer, keyString, useBase64);
+
+
                 myHeader.dataLength = buffer->size();
 
                 packetSucces = false;

@@ -40,16 +40,36 @@ int main()
 
 	//Hel == SGVs
 	
-	vector<char>* buffer = new vector<char>{ 'A', 'B', 'C' , 'D', '-', 'F', 'G', 'h'};
+    vector<char>* buffer = new vector<char>();
+    vector<char>* buffer2 = new vector<char>();
 
+    string key = "Hello World!!!";
+    
+
+    
+    std::string value = "*&**&&*(*(*(*&(*(*(*(*(**&";
+
+    for (int x = 0; x < value.length(); x++)
+    {
+        buffer->push_back(value[x]);
+    }
+
+    encryption(buffer, key);
 	buffer = encode64(buffer);
 
-	buffer = decode64(buffer);
+    for (int x = 0; x < buffer->size(); x++)
+    {
+        cout << (*buffer)[x];
+    }
+    cout << endl;
 
-	cout << buffer->size() << endl;
-	for (int x = 0; x < buffer->size(); x++)
+	buffer2 = decode64(buffer);
+    encryption(buffer2, key);
+
+	cout << buffer2->size() << endl;
+	for (int x = 0; x < buffer2->size(); x++)
 	{
-		cout << (*buffer)[x];
+		cout << (*buffer2)[x];
 	}
 	cout << endl;	
 }
