@@ -13,7 +13,7 @@ public:
     ~userManager();
 
     
-    bool validate(std::string user, std::string pass);
+    bool validate(std::string user, std::string pass, std::string salt);
     bool create(std::string user, std::string pass);
 
 

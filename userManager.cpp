@@ -11,7 +11,7 @@ userManager::~userManager()
 }
 
 
-bool userManager::validate(std::string user, std::string pass)
+bool userManager::validate(std::string user, std::string pass, std::string salt)
 {
 
     //hash pass and store results in pass
@@ -26,10 +26,11 @@ bool userManager::validate(std::string user, std::string pass)
             std::size_t pos = subString.find(' ');
             std::string name = subString.substr(0, pos);
 
-            //remove salt from hash
             std::string passWord = subString.substr(pos + 1);
 
-            if (user == name && pass == passWord)
+            //checks if the plaintext password provided when hashed with the stored salt
+            //results in the same hash as the one that is stored
+            if (user == name && compare_salted(passWord, pass))
             {
                 return true;
             }
@@ -58,7 +59,11 @@ bool userManager::create(std::string user, std::string pass)
 
     if (userFile.is_open())
     {
-        //hash this pass word
+        //password is stored as a salt and hash
+        //so it should look like "[user] [salt]:[hash]"
+        //the salt and hash will be used for verification instead of
+        //just the plaintext password
+        pass = salt_and_hash(pass);
         std::string userInfo = user + ' ' + pass;
         userFile << userInfo;
         userFile.close();

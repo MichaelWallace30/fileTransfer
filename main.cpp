@@ -12,19 +12,27 @@
 
 #include <iostream>
 using namespace std;
-bool useBase64 = true;
+bool useBase64 = false;
 
 
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
-
+    if (useBase64)
+    {
+        buffer = encode64(buffer);
+    }
     buffer = encryption(buffer, key);
     return buffer;
 }
 
 std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
+
     buffer = encryption(buffer, key);
+    if (useBase64)
+    {
+        buffer = decode64(buffer);
+    }
 
     return buffer;
 }
@@ -67,7 +75,7 @@ int main()
 
             //add user name and pass to data
             userAuth myUserAuth;
-            myUserAuth.base64 = false;
+            myUserAuth.base64 = useBase64;
             myUserAuth.setName(name);
             myUserAuth.setPass(pass);
 
@@ -104,17 +112,13 @@ int main()
             //move on
             //temp data             load file
             data->resize(0);
-            for (int x = 0; x < 100; x++)
+            for (int x = 0; x < 10; x++)
             {
                 data->push_back('*');
             }
-            if (useBase64)
-            {
-                data = encode64(data);
-            }
             
-            int maxPacketSize = 100;//bytes
-            int size = 100;
+            int maxPacketSize = 10;//bytes
+            int size = 10;
 
             int numPackets = size / maxPacketSize;
 
@@ -129,7 +133,7 @@ int main()
             
             while (!done)
             {
-                int currentPacketSize = 100;
+                int currentPacketSize = 10;
                 messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize};
                 buffer->resize(0);
                 buffer= myHeader.serialize(buffer);
@@ -138,6 +142,12 @@ int main()
                     buffer->push_back((*data)[x + offset]);
                 }
 
+
+                //the order for sending each packet should be
+                //1. Hash
+                //2. Encrypt
+                //3. (Optionally) Base64 encode
+                buffer = hash_and_append(buffer);
 
                 buffer = encodeMessage(buffer, keyString, useBase64);
                 myHeader.dataLength = buffer->size();
@@ -186,6 +196,8 @@ int main()
                 data->resize(0);
                 messageHeader myHeader{ END, 0, 0 };
                 data = myHeader.serialize(data);
+                data = hash_and_append(data);
+                data = encodeMessage(data, keyString, useBase64);
                 myClient.sendVector(data);
                 exit(1);
             }
@@ -225,10 +237,12 @@ int main()
                 userManager myUserManager;
                 userAuth myUserAuth;
                 myUserAuth.deserialize(data, HEADER_SIZE);
-                bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass());
+                bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass(), "salt");
+                validUser = true;
 
                 if (validUser)
                 {
+                    useBase64 = myUserAuth.base64;
                     messageHeader authHeader{ SUCCESS, 0, 0 };
                     data = authHeader.serialize(data);
                     //append hash fist
@@ -257,22 +271,34 @@ int main()
             std::vector<char>* recvVector = new std::vector<char>();
 
             while (!done)
-            {
-            
-                messageHeader recvHeader;
+            {           
+
                 myServer.recvVector(data);
-                recvHeader.deserialize(data);                
+
+                //The order for receiving is the opposite of sending
+                //1. (Optionally) Decode from base64
+                //2. Decrypt
+                //3. Verify the hash
+                data = decodeMessage(data, keyString, useBase64);
+
+                std::string receivedHash = remove_hash(data);
+                if (hashVector(data) != receivedHash) {
+                    cout << "hash wrong, exiting" << endl;
+                    exit(2);
+                }
+
+
+                messageHeader recvHeader;
+                recvHeader.deserialize(data);
 
                 if (recvHeader.messageType != END)
                 {
                     std::vector<char>* tempData = new std::vector<char>();
                     
-                    for (int x = 0; x < recvHeader.dataLength; x++)
+                    for (int x = 12; x < recvHeader.dataLength + 12; x++)
                     {
-                        tempData->push_back((*data)[x + HEADER_SIZE]);
+                        tempData->push_back((*data)[x]);
                     }
-
-                    tempData = decodeMessage(tempData, keyString, useBase64);
 
                     for (int x = 0; x < recvHeader.dataLength; x++)
                     {
@@ -291,10 +317,6 @@ int main()
             }
 
 
-            if (useBase64)
-            {
-                recvVector = decode64(recvVector);
-            }
             
             for (int x = 0; x < recvVector->size(); x++)
             {
