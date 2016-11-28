@@ -12,12 +12,12 @@
 #include <iostream>
 using namespace std;
 bool useBase64 = true;
-bool forceFailure = true;
+bool forceFailure = false;
 
 
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
-
+    buffer = hash_and_append(buffer);
     buffer = encryption(buffer, key);
 
     if (forceFailure)
@@ -35,7 +35,7 @@ std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bo
     return buffer;
 }
 
-std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
+std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bool useBase64, bool &validHash)
 {
 
 
@@ -45,6 +45,9 @@ std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bo
     }
 
     buffer = encryption(buffer, key);
+
+    std::string receivedHash = remove_hash(buffer);
+    validHash = (hashVector(buffer) == receivedHash);
     return buffer;
 }
 
@@ -97,12 +100,11 @@ int main()
             data = myUserAuth.serialize(data);
 
             //send user name and data
-            //append hash fist            
+            //append hash fist    
             myClient.sendVector(data);
 
 
             //wait for response
-            //check hash fist
             myClient.recvVector(data);
             messageHeader authUserHeader;
             authUserHeader.deserialize(data);
@@ -157,7 +159,6 @@ int main()
                 //1. Hash
                 //2. Encrypt
                 //3. (Optionally) Base64 encode
-                buffer = hash_and_append(buffer);
                 buffer = encodeMessage(buffer, keyString, useBase64);
 
 
@@ -208,7 +209,6 @@ int main()
                 data->resize(0);
                 messageHeader myHeader{ END, 0, 0 };
                 data = myHeader.serialize(data);
-                data = hash_and_append(data);
                 data = encodeMessage(data, keyString, useBase64);
                 myClient.sendVector(data);
                 exit(1);
@@ -292,10 +292,11 @@ int main()
                 //1. (Optionally) Decode from base64
                 //2. Decrypt
                 //3. Verify the hash
-                data = decodeMessage(data, keyString, useBase64);
+                bool validHash = false;
+                data = decodeMessage(data, keyString, useBase64, validHash);
 
-                std::string receivedHash = remove_hash(data);
-                if (hashVector(data) != receivedHash) {
+
+                if (!validHash) {
                     cout << "hash wrong, exiting" << endl;
 
                     messageHeader responseHeader{ FAILED, 0, 0 };
