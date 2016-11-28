@@ -11,9 +11,14 @@
 
 #include <iostream>
 using namespace std;
-bool useBase64 = true;
+char selection;
+bool isServer;
+bool useBase64 = false;
 bool forceFailure = false;
-
+string encryptKey;
+string IP;
+string IOfileName;
+string maxPacketString;
 
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
@@ -53,20 +58,72 @@ std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bo
 
 int main()
 {
+    do
+    {
+        cout << "1. Server.\n"
+            << "2. Client.\n"
+            << "Please enter your selection : ";
+        cin >> selection;
+        if (selection == '1')
+        {
+            isServer = true;
+        }
+        else if (selection == '2')
+        {
+            isServer = false;
+        }
+        else
+        {
+            cout << "Invalid selection.\n";
+        }
+
+    } while (selection != '1' && selection != '2');
+        
+
+    cout << "Whats Server IP? ";
+    cin >> IP;
+
+    cout << "Whats the encryption key file name? ";
+    cin >> encryptKey;
+        
+    cout << "Whats input or output file name? ";
+    cin >> IOfileName;
+    if (!isServer)
+    {
+        do
+        {
+            cout << "Base64?\n";
+            cout << "1. Yes\n"
+                << "2. No\n";
+            cin >> selection;
+            if (selection == '1')
+                useBase64 = true;
+            else if (selection == '2')
+                useBase64 = false;
+        } while (selection != '1' && selection != '2');
 
 
+        cout << "What is the max packet size? ";
+        cin >> maxPacketString;
+
+        do
+        {
+            cout << "force error? \n";
+            cout << "1. Yes\n"
+                << "2. No\n";
+            cin >> selection;
+            if (selection == '1')
+                forceFailure = true;
+            else if (selection == '2')
+                forceFailure = false;
+
+        } while (selection != '1' && selection != '2');
+    }
+    std::string keyString = readKey(encryptKey);
     
-    std::string keyString = readKey("key.txt");
-
-
-
     std::vector<char> * data = new std::vector<char>();
 
-    bool isClient;
-    cout << "client? ";
-    cin >> isClient;
-
-    if (isClient)
+    if (!isServer)
     {
         //user manager is used to add new user and validate exsistsing users
         userManager usermanager{};
@@ -114,6 +171,7 @@ int main()
                 cout << "auth succes" << endl;
                 done = true;
             }
+
             else if (authUserHeader.messageType == FAILED)
             {
                 cout << "auth failure" << endl << endl;;
@@ -124,9 +182,9 @@ int main()
 
         if (done)
         {
-            data = fileToVector("testFile.txt");
+            data = fileToVector(IOfileName);
 
-            int maxPacketSize = 10;//bytes
+            int maxPacketSize = std::stoi(maxPacketString);//bytes
             int size = data->size();
 
             int numPackets = (size % maxPacketSize)? size / maxPacketSize + 1: size / maxPacketSize;
@@ -337,7 +395,7 @@ int main()
 
             if (attempts < maxAttempts)
             {
-                vectorToFile("outPut.txt", recvVector);
+                vectorToFile(IOfileName, recvVector);
                 exit(0);
             }
             else
