@@ -2,6 +2,7 @@
 #define USER_MANAGER_H
 
 #include <string>
+#include <cstring>
 #include "hash.h"
 #include <fstream>
 #define FILE_NAME "user.txt"

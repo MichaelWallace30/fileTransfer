@@ -20,7 +20,7 @@ server::~server()
 
 bool server::init(std::string ip, int port)
 {
-#ifndef _linux
+#ifndef __linux
     WSADATA wsa;
     //Initialise winsock
     printf("\nInitialising Winsock...");
