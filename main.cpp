@@ -12,12 +12,21 @@
 #include <iostream>
 using namespace std;
 bool useBase64 = true;
+bool forceFailure = true;
 
 
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
 
     buffer = encryption(buffer, key);
+
+    if (forceFailure)
+    {
+        int index = buffer->size() - 3;
+        if (index < 0) index = 0;
+
+        (*buffer)[index] ^= 1337;
+    }
 
     if (useBase64)
     {
@@ -42,6 +51,8 @@ std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bo
 int main()
 {
 
+
+    
     std::string keyString = readKey("key.txt");
 
 
@@ -103,7 +114,7 @@ int main()
             }
             else if (authUserHeader.messageType == FAILED)
             {
-                cout << "auth failure" << endl;                
+                cout << "auth failure" << endl << endl;;
             }
             attempts++;
         }//end attempts  
@@ -111,18 +122,12 @@ int main()
 
         if (done)
         {
-            //move on
-            //temp data             load file
-            data->resize(0);
-            for (int x = 0; x < 10; x++)
-            {
-                data->push_back('*');
-            }
-            
-            int maxPacketSize = 10;//bytes
-            int size = 10;
+            data = fileToVector("testFile.txt");
 
-            int numPackets = size / maxPacketSize;
+            int maxPacketSize = 10;//bytes
+            int size = data->size();
+
+            int numPackets = (size % maxPacketSize)? size / maxPacketSize + 1: size / maxPacketSize;
 
             done = false;
             bool packetSucces = false;
@@ -135,7 +140,10 @@ int main()
             
             while (!done)
             {
-                int currentPacketSize = 10;
+                int currentPacketSize = size - (maxPacketSize * (packetNumber -1));
+                currentPacketSize = currentPacketSize > maxPacketSize ? maxPacketSize: currentPacketSize;
+
+
                 messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize};
                 buffer->resize(0);
                 buffer= myHeader.serialize(buffer);
@@ -180,6 +188,7 @@ int main()
                     }
                     else
                     {
+                        cout << "Corrupt packet sent retyring." << endl;
                         attempts++;
                         packetSucces = false;
                     }
@@ -240,8 +249,8 @@ int main()
                 userManager myUserManager;
                 userAuth myUserAuth;
                 myUserAuth.deserialize(data, HEADER_SIZE);
-                bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass(), "salt");
-                validUser = true;
+                bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass());
+                
 
                 if (validUser)
                 {
@@ -260,20 +269,21 @@ int main()
                     data = authHeader.serialize(data);
                     //append hash fist
                     myServer.sendVector(data);
-                    cout << "auth failure" << endl;
+                    cout << "auth failure" << endl << endl;;
 
                 }
             }
             attempts++;
         }//end attempts
 
+        attempts = 1;
         if (done)
         {
             //move on
             done = false;
             std::vector<char>* recvVector = new std::vector<char>();
 
-            while (!done)
+            while (!done && attempts <= maxAttempts)
             {           
 
                 myServer.recvVector(data);
@@ -287,43 +297,51 @@ int main()
                 std::string receivedHash = remove_hash(data);
                 if (hashVector(data) != receivedHash) {
                     cout << "hash wrong, exiting" << endl;
-                    exit(2);
-                }
 
-
-                messageHeader recvHeader;
-                recvHeader.deserialize(data);
-
-                if (recvHeader.messageType != END)
-                {
-                    std::vector<char>* tempData = new std::vector<char>();
-                    
-                    for (int x = 12; x < recvHeader.dataLength + 12; x++)
-                    {
-                        tempData->push_back((*data)[x]);
-                    }
-
-                    for (int x = 0; x < recvHeader.dataLength; x++)
-                    {
-                        recvVector->push_back((*tempData)[x]);
-                    }
-
-                    //check hash                    
-                    messageHeader responseHeader{ SUCCESS, 0, 0 };
+                    messageHeader responseHeader{ FAILED, 0, 0 };
                     data = responseHeader.serialize(data);
                     myServer.sendVector(data);
+                    attempts++;
                 }
                 else
                 {
-                    done = true;                    
+                    messageHeader recvHeader;
+                    recvHeader.deserialize(data);
+
+                    if (recvHeader.messageType != END)
+                    {
+                        std::vector<char>* tempData = new std::vector<char>();
+
+                        for (int x = 12; x < recvHeader.dataLength + 12; x++)
+                        {
+                            tempData->push_back((*data)[x]);
+                        }
+
+                        for (int x = 0; x < recvHeader.dataLength; x++)
+                        {
+                            recvVector->push_back((*tempData)[x]);
+                        }
+
+                        attempts = 1;
+                        messageHeader responseHeader{ SUCCESS, 0, 0 };
+                        data = responseHeader.serialize(data);
+                        myServer.sendVector(data);
+                    }
+                    else
+                    {
+                        done = true;
+                    }
                 }
             }
 
-
-            
-            for (int x = 0; x < recvVector->size(); x++)
+            if (attempts < maxAttempts)
             {
-                cout << (char)(*recvVector)[x] << endl;
+                vectorToFile("outPut.txt", recvVector);
+                exit(0);
+            }
+            else
+            {
+                cout << "packet corruption program done." << endl;
             }
             exit(1);
             

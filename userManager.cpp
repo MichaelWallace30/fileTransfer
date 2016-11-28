@@ -11,7 +11,7 @@ userManager::~userManager()
 }
 
 
-bool userManager::validate(std::string user, std::string pass, std::string salt)
+bool userManager::validate(std::string user, std::string pass)
 {
 
     //hash pass and store results in pass
@@ -64,7 +64,7 @@ bool userManager::create(std::string user, std::string pass)
         //the salt and hash will be used for verification instead of
         //just the plaintext password
         pass = salt_and_hash(pass);
-        std::string userInfo = user + ' ' + pass;
+        std::string userInfo ="\n" + user + ' ' + pass;
         userFile << userInfo;
         userFile.close();
         return true;

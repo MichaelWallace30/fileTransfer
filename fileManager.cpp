@@ -24,7 +24,7 @@ std::string readKey(std::string fileName)
 std::vector<char>* fileToVector(std::string fileName)
 {
 
-    std::ifstream myFile("test.txt", std::ios::binary);
+    std::ifstream myFile(fileName, std::ios::binary);
 
     if (myFile.is_open())
     {

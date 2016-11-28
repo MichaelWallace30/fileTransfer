@@ -1,0 +1,6 @@
+Hello World this is 
+My test text
+file and will 
+transfer it
+to another computer
+suing ftp
