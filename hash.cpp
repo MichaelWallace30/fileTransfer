@@ -24,10 +24,10 @@ std::string remove_hash(std::vector<char>* s){
     std::stringstream ss;
     for(char c : *s) ss << c;
     //int i = ss.str().find_first_of(':');
-    int k = ss.str().find(':');
+    //int k = ss.str().find(':');
     //if(isSalted) *salt = ss.str().substr(i+1, 6);
-    s->erase(s->begin()+k, s->end());
-    return ss.str().substr(k+1);
+    s->erase(s->end()-32, s->end());
+    return ss.str().substr(s->size());
 }
 
 //used for just the user's password, so use string not vector. returns as "[SALT]:[HASH]"
@@ -35,13 +35,12 @@ static const char salt_chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST
 std::string salt_and_hash(std::string s){
     std::vector<char> in;
     for(char c : s) in.push_back(c);
-    in.push_back(':');
     for(int i = 0; i < 6; ++i)
         in.push_back(salt_chars[std::rand()%(sizeof(salt_chars)-1)]);
     in = *hash_and_append(&in);
     std::stringstream ss;
     for(char c : in) ss << c;
-    return ss.str().substr(ss.str().find_first_of(':')+1);
+    return ss.str().substr(s.size());
 }
 
 //returns whether or not the passwords are the same. the first argument is what should be stored in the
@@ -49,11 +48,15 @@ std::string salt_and_hash(std::string s){
 //that is not hashed
 bool compare_salted(std::string salted_pass, std::string pass_to_check){
     std::string salt = salted_pass.substr(0, 6);
-    std::string h = salted_pass.substr(7);
+    std::string h = salted_pass.substr(6);
+    std::cout << salt <<std::endl;
+    std::cout << h <<std::endl;
+    std::cout << pass_to_check << std::endl;
     std::vector<char> in;
     for(char c : pass_to_check) in.push_back(c);
-    in.push_back(':');
     for(char c : salt) in.push_back(c);
+    for(char c : in) std::cout << c;
+    std::cout << std::endl;
     return hashVector(&in) == h;
 
 }
@@ -61,7 +64,6 @@ bool compare_salted(std::string salted_pass, std::string pass_to_check){
 //appends the hash to the vector
 std::vector<char>* hash_and_append(std::vector<char>* s){
     std::string h = hashVector(s);
-    s->push_back(':');
     for(char c : h){
         s->push_back(c);
     }
@@ -113,37 +115,24 @@ std::string hashVector(std::vector<char>* s){
 }
 
 
-//new example for checking of salted hash
+//quick way to hash something with or without salt, i.e. passwords for the users
 /*
 int main(){
 
     seed_rand();
-    std::string salted = salt_and_hash("test");
-    std::cout << "Salted hash verification" << std::endl;
-    std::cout << "Input: test" << std::endl;
-    std::cout << "Salt and hash: " << salted << std::endl;
-    std::cout << "Verifying 'test': " << compare_salted(salted, "test") << std::endl;
-    std::cout << "Verifying 'test1': " << compare_salted(salted, "test1");
-
-    std::cout << "\n\nRemoving hash updated" << std::endl;
-
-    std::vector<char> in = {'t', 'e', 's', 't', '1' };
-    std::cout << "Input = ";
-    for(char c : in) std::cout << c;
-    std::cout << std::endl;
-
-    std::vector<char> out = *hash_and_append(&in);
-    std::cout << "Output = ";
-    for(char c : out) std::cout << c;
-    std::cout << "\nHash = " << remove_hash(&out);
-    std::cout << "\nStripped Output = ";
-    for(char c : out) std::cout << c;
-    std::cout << "\n\n";
-
-
-
+    std::string in;
+    std::cout << "What to hash? ";
+    std::cin >> in;
+    std::cout << "Salt it? (y/n) ";
+    char x = 'n';
+    std::cin >> x;
+    if(x == 'y'){
+        std::cout << salt_and_hash(in);
+    }else {
+        std::vector<char> v;
+        for(char c : in) v.push_back(c);
+        std::cout << hashVector(&v);
+    }
     return 0;
-
 }
 */
-

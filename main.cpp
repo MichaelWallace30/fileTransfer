@@ -198,7 +198,7 @@ int main()
         if (done)
         {
             data = fileToVector(IOfileName);
-
+			if (data->size() == 0) return 1;
             int maxPacketSize = std::stoi(maxPacketString);//bytes
             int size = data->size();
             int numPackets = (size % maxPacketSize) ? size / maxPacketSize + 1 : size / maxPacketSize;
@@ -292,7 +292,7 @@ int main()
                 {
                     //end program
                     cout << "\nPacket corruption progam done." << endl;
-                    exit(0);
+                    return 0;
                 }
 
             }
@@ -305,7 +305,7 @@ int main()
                 data = encodeMessage(data, keyString, useBase64);
                 myClient.sendVector(data);
                 printf("\nFile transfer complete\n");
-                exit(1);
+                return 1;
             }
 
 
@@ -315,7 +315,7 @@ int main()
         {
             //we are done exit program
             cout << "auth failure program will exit" << endl;
-            exit(0);
+            return 0;
         }
 
     }//server mode
@@ -345,7 +345,7 @@ int main()
                 userAuth myUserAuth;
                 myUserAuth.deserialize(data, HEADER_SIZE);
                 bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass());
-
+                validUser = true;
 
                 if (validUser)
                 {                    
@@ -461,21 +461,21 @@ int main()
             {
                 vectorToFile(IOfileName, recvVector);
                 printf("\nFile transfer complete\n");
-                exit(0);
+                return 0;
             }
             else
             {
                 cout << "\npacket corruption program done." << endl;
             }
           
-            exit(1);
+            return 1;
 
         }
         else//auth failure
         {
             //we are done exit program
             cout << "auth failure program will exit" << endl;
-            exit(0);
+            return 0;
         }
     }
 

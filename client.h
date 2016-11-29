@@ -23,12 +23,9 @@
 
 #include<stdlib.h>
 #include<stdio.h>
-#include <chrono>
 #include <iostream>
 #include <vector>
-#include <thread>
-#include <mutex>
-#include <queue>
+
 
 
 
@@ -43,14 +40,10 @@ private:
     char bufferRecv[MAX_BUFFER];
     char bufferSend[MAX_BUFFER];
 
-    std::mutex g_mutex;
-    std::queue<std::vector<char>> recvQueue;
 
-    bool done;
-    std::thread* myThread;
     //shared vector
     std::vector<char> *otherVector;
-    void clientThread();
+
  
 public:
     client();

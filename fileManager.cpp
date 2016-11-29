@@ -25,7 +25,7 @@ std::vector<char>* fileToVector(std::string fileName)
 {   
     printf("\nLoading file please wait...\n\n");
     std::ifstream myFile(fileName, std::ios_base::binary | std::ios_base::in);
-
+	std::vector<char>* newVector = new std::vector<char>();
     if (myFile.is_open())
     {
         std::vector<char> buffer((std::istreambuf_iterator<char>(myFile)),
@@ -33,7 +33,7 @@ std::vector<char>* fileToVector(std::string fileName)
         myFile.close();
 
 
-        std::vector<char>* newVector = new std::vector<char>();
+        
 
         for (int x = 0; x < buffer.size(); x++)
         {
@@ -42,7 +42,7 @@ std::vector<char>* fileToVector(std::string fileName)
         return newVector;
     }    
     printf("\nfailed to open exsisting file\n");
-    return NULL;    
+    return newVector;    
 }
 
 

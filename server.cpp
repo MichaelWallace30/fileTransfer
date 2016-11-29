@@ -3,18 +3,13 @@
 
 server::server()
 {    
-    done = false;        
+       
 }
 
 
 server::~server()
 {
-    done = true;    
-    if (myThread->joinable()) {
-        printf("client thread trying to join\n");
-        myThread->join();
-        printf("client thread joined!\n");
-    }
+
 }
 
 
@@ -71,42 +66,10 @@ bool server::init(std::string ip, int port)
     }
     puts("Connection accepted");
 
-    myThread = new std::thread(&server::serverThread, this);
+    
     return true;
 }
 
-void server::serverThread()
-{
-
-    while (!done)
-    {
-        int read_size = 0;
-        while ((read_size = recv(client_sock, bufferRecv, MAX_BUFFER, 0)) < 0)
-        {
-        }
-
-        if (read_size != 0)
-        {
-            
-            std::vector<char> tempVector;            
-            //deep copy
-            for (int x = 0; x < read_size; x++)
-            {
-                tempVector.push_back(bufferRecv[x]);
-            }
-
-            g_mutex.lock();
-            recvQueue.push(tempVector);
-            g_mutex.unlock();
-
-#ifdef debugServer
-            printf("server recv\n");
-#endif
-
-        }
-        
-    }
-}
 
 void server::sendVector(std::vector<char> * buffer)
 {
@@ -122,17 +85,17 @@ void server::sendVector(std::vector<char> * buffer)
 
 std::vector<char>* server::recvVector(std::vector<char> * buffer)
 {    
-    while (recvQueue.size() == 0); //just wait for ever
-    
-    std::vector<char> temp = recvQueue.front();
-    g_mutex.lock();
-    recvQueue.pop();//mutex
-    g_mutex.unlock();    
+	int read_size = 0;
+	while ((read_size = recv(client_sock, bufferRecv, MAX_BUFFER, 0)) < 0)
+	{
+	}
+
+
     //deep copy
     buffer->resize(0);
-    for (int x = 0; x < temp.size(); x++)
+    for (int x = 0; x < read_size; x++)
     {
-        buffer->push_back(temp[x]);
+        buffer->push_back(bufferRecv[x]);
     }
     
     return buffer;
