@@ -22,7 +22,7 @@ string maxPacketString;
 
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
-    buffer = hash_and_append(buffer);
+   // buffer = hash_and_append(buffer);
     buffer = encryption(buffer, key);
 
     if (forceFailure)
@@ -51,8 +51,9 @@ std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bo
 
     buffer = encryption(buffer, key);
 
-    std::string receivedHash = remove_hash(buffer);
-    validHash = (hashVector(buffer) == receivedHash);
+    //std::string receivedHash = remove_hash(buffer);
+    //validHash = (hashVector(buffer) == receivedHash);
+    validHash = true;
     return buffer;
 }
 
@@ -78,14 +79,14 @@ int main()
         }
 
     } while (selection != '1' && selection != '2');
-        
+
 
     cout << "Whats Server IP? ";
     cin >> IP;
 
     cout << "Whats the encryption key file name? ";
     cin >> encryptKey;
-        
+
     cout << "Whats input or output file name? ";
     cin >> IOfileName;
     if (!isServer)
@@ -120,7 +121,7 @@ int main()
         } while (selection != '1' && selection != '2');
     }
     std::string keyString = readKey(encryptKey);
-    
+
     std::vector<char> * data = new std::vector<char>();
 
     if (!isServer)
@@ -133,7 +134,7 @@ int main()
         client myClient;
         myClient.init("127.0.0.1", 8888);
 
-        
+
         int maxAttempts = 3;
         int attempts = 0;
         bool done = false;
@@ -178,7 +179,7 @@ int main()
             }
             attempts++;
         }//end attempts  
-    
+
 
         if (done)
         {
@@ -187,7 +188,7 @@ int main()
             int maxPacketSize = std::stoi(maxPacketString);//bytes
             int size = data->size();
 
-            int numPackets = (size % maxPacketSize)? size / maxPacketSize + 1: size / maxPacketSize;
+            int numPackets = (size % maxPacketSize) ? size / maxPacketSize + 1 : size / maxPacketSize;
 
             done = false;
             bool packetSucces = false;
@@ -197,16 +198,16 @@ int main()
             int packetNumber = 1;
             int attempts = 0;
             int maxAttempts = 3;
-            
+
             while (!done)
             {
-                int currentPacketSize = size - (maxPacketSize * (packetNumber -1));
-                currentPacketSize = currentPacketSize > maxPacketSize ? maxPacketSize: currentPacketSize;
+                int currentPacketSize = size - (maxPacketSize * (packetNumber - 1));
+                currentPacketSize = currentPacketSize > maxPacketSize ? maxPacketSize : currentPacketSize;
 
 
-                messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize};
+                messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize };
                 buffer->resize(0);
-                buffer= myHeader.serialize(buffer);
+                buffer = myHeader.serialize(buffer);
                 for (int x = 0; x < currentPacketSize; x++)
                 {
                     buffer->push_back((*data)[x + offset]);
@@ -217,10 +218,11 @@ int main()
                 //1. Hash
                 //2. Encrypt
                 //3. (Optionally) Base64 encode
+                myHeader.dataLength = buffer->size();
                 buffer = encodeMessage(buffer, keyString, useBase64);
 
 
-                myHeader.dataLength = buffer->size();
+
 
                 packetSucces = false;
                 while (attempts < maxAttempts && !packetSucces)
@@ -243,7 +245,7 @@ int main()
                         attempts = 0;
                         if (packetNumber == numPackets)done = true;
                         packetNumber++;
-                        
+
                     }
                     else
                     {
@@ -281,7 +283,7 @@ int main()
             cout << "auth failure program will exit" << endl;
             exit(0);
         }
-        
+
     }//server mode
     else
     {
@@ -308,7 +310,7 @@ int main()
                 userAuth myUserAuth;
                 myUserAuth.deserialize(data, HEADER_SIZE);
                 bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass());
-                
+
 
                 if (validUser)
                 {
@@ -342,7 +344,7 @@ int main()
             std::vector<char>* recvVector = new std::vector<char>();
 
             while (!done && attempts <= maxAttempts)
-            {           
+            {
 
                 myServer.recvVector(data);
 
@@ -403,7 +405,7 @@ int main()
                 cout << "packet corruption program done." << endl;
             }
             exit(1);
-            
+
         }
         else//auth failure
         {
@@ -413,17 +415,6 @@ int main()
         }
     }
 
-
-
-
-
-
-
-
-
     //cout << usermanager.validate(name, pass)<<endl;
-
-    
-
 
 }

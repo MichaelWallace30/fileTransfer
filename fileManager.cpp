@@ -24,7 +24,7 @@ std::string readKey(std::string fileName)
 std::vector<char>* fileToVector(std::string fileName)
 {
 
-    std::ifstream myFile(fileName, std::ios::binary);
+    std::ifstream myFile(fileName, std::ios_base::binary | std::ios_base::in);
 
     if (myFile.is_open())
     {
@@ -48,7 +48,7 @@ std::vector<char>* fileToVector(std::string fileName)
 
 bool vectorToFile(std::string fileName, std::vector<char> *buffer)
 {
-    std::ofstream yourFile(fileName, std::ios::binary);
+    std::ofstream yourFile(fileName, std::ios_base::binary | std::ios_base::out);
 
     if (yourFile.is_open())
     {
