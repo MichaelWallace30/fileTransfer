@@ -20,9 +20,16 @@ string IP;
 string IOfileName;
 string maxPacketString;
 
+
+
+
+//the order for sending each packet should be
+//1. Hash
+//2. Encrypt
+//3. (Optionally) Base64 encode
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
-   // buffer = hash_and_append(buffer);
+    buffer = hash_and_append(buffer);
     buffer = encryption(buffer, key);
 
     if (forceFailure)
@@ -40,6 +47,12 @@ std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bo
     return buffer;
 }
 
+
+
+//The order for receiving is the opposite of sending
+//1. (Optionally) Decode from base64
+//2. Decrypt
+//3. Verify the hash
 std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bool useBase64, bool &validHash)
 {
 
@@ -51,9 +64,9 @@ std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bo
 
     buffer = encryption(buffer, key);
 
-    //std::string receivedHash = remove_hash(buffer);
-    //validHash = (hashVector(buffer) == receivedHash);
-    validHash = true;
+    std::string receivedHash = remove_hash(buffer);
+    validHash = (hashVector(buffer) == receivedHash);
+    //validHash = true;
     return buffer;
 }
 
@@ -89,21 +102,21 @@ int main()
 
     cout << "Whats input or output file name? ";
     cin >> IOfileName;
+
+    do
+    {
+        cout << "Base64?\n";
+        cout << "1. Yes\n"
+            << "2. No\n";
+        cin >> selection;
+        if (selection == '1')
+            useBase64 = true;
+        else if (selection == '2')
+            useBase64 = false;
+    } while (selection != '1' && selection != '2');
+
     if (!isServer)
     {
-        do
-        {
-            cout << "Base64?\n";
-            cout << "1. Yes\n"
-                << "2. No\n";
-            cin >> selection;
-            if (selection == '1')
-                useBase64 = true;
-            else if (selection == '2')
-                useBase64 = false;
-        } while (selection != '1' && selection != '2');
-
-
         cout << "What is the max packet size? ";
         cin >> maxPacketString;
 
@@ -148,8 +161,7 @@ int main()
             cin >> pass;
 
             //add user name and pass to data
-            userAuth myUserAuth;
-            myUserAuth.base64 = useBase64;
+            userAuth myUserAuth;            
             myUserAuth.setName(name);
             myUserAuth.setPass(pass);
 
@@ -157,13 +169,15 @@ int main()
             data = myHeader.serialize(data);
             data = myUserAuth.serialize(data);
 
-            //send user name and data
-            //append hash fist    
+            //send user name and data  
+            data = encodeMessage(data, keyString, useBase64);
             myClient.sendVector(data);
 
 
             //wait for response
             myClient.recvVector(data);
+            bool validHash = false;
+            data = decodeMessage(data, keyString, useBase64, validHash);
             messageHeader authUserHeader;
             authUserHeader.deserialize(data);
 
@@ -187,9 +201,7 @@ int main()
 
             int maxPacketSize = std::stoi(maxPacketString);//bytes
             int size = data->size();
-
             int numPackets = (size % maxPacketSize) ? size / maxPacketSize + 1 : size / maxPacketSize;
-
             done = false;
             bool packetSucces = false;
             std::vector<char>* buffer = new std::vector<char>();
@@ -198,6 +210,14 @@ int main()
             int packetNumber = 1;
             int attempts = 0;
             int maxAttempts = 3;
+
+            //send start and num packets
+            messageHeader sizeHeader;
+            sizeHeader.messageType = START;
+            sizeHeader.dataLength = numPackets;
+            sizeHeader.serialize(buffer);
+            buffer = encodeMessage(buffer, keyString, useBase64);                   
+            myClient.sendVector(buffer);
 
             while (!done)
             {
@@ -213,29 +233,23 @@ int main()
                     buffer->push_back((*data)[x + offset]);
                 }
 
-
-                //the order for sending each packet should be
-                //1. Hash
-                //2. Encrypt
-                //3. (Optionally) Base64 encode
                 myHeader.dataLength = buffer->size();
                 buffer = encodeMessage(buffer, keyString, useBase64);
-
-
-
-
                 packetSucces = false;
+
+
+
                 while (attempts < maxAttempts && !packetSucces)
                 {
 
-                    //send packet
-                    //hash
+                    //send packet                    
                     myClient.sendVector(buffer);
 
                     //wait for response
-                    //hash
                     recvBuffer->resize(0);
                     myClient.recvVector(recvBuffer);
+                    bool validHash = false;
+                    recvBuffer = decodeMessage(recvBuffer, keyString, useBase64, validHash);
                     messageHeader recvHeader;
                     recvHeader.deserialize(recvBuffer);
                     if (recvHeader.messageType == SUCCESS)
@@ -246,10 +260,29 @@ int main()
                         if (packetNumber == numPackets)done = true;
                         packetNumber++;
 
+                        //fix formating
+                        double progress = (double(packetNumber - 1) / double(numPackets)) * 100;
+
+                        cout << "Progress: ";
+                        for (int x = 0; x < 100; x += 2)
+                        {
+                            if (x < progress)
+                            {
+                                cout << "=";
+                            }
+                            else
+                            {
+                                cout << " ";
+                            }
+                        }
+                        cout << ">\r";
+                        
+                        
+
                     }
                     else
                     {
-                        cout << "Corrupt packet sent retyring." << endl;
+                        cout << "\nCorrupt packet sent retyring." << endl;
                         attempts++;
                         packetSucces = false;
                     }
@@ -258,7 +291,7 @@ int main()
                 if (!packetSucces)
                 {
                     //end program
-                    cout << "Packet corruption progam done." << endl;
+                    cout << "\nPacket corruption progam done." << endl;
                     exit(0);
                 }
 
@@ -271,6 +304,7 @@ int main()
                 data = myHeader.serialize(data);
                 data = encodeMessage(data, keyString, useBase64);
                 myClient.sendVector(data);
+                printf("\nFile transfer complete\n");
                 exit(1);
             }
 
@@ -297,9 +331,10 @@ int main()
 
         while (attempts < maxAttempts && !done)
         {
-            //wait for message  
-            //check hash fist
+            //wait for message              
             myServer.recvVector(data);
+            bool validHash = false;
+            data = decodeMessage(data, keyString, useBase64, validHash);
 
             messageHeader myHeader;
             myHeader.deserialize(data);
@@ -313,54 +348,62 @@ int main()
 
 
                 if (validUser)
-                {
-                    useBase64 = myUserAuth.base64;
+                {                    
                     messageHeader authHeader{ SUCCESS, 0, 0 };
-                    data = authHeader.serialize(data);
-                    //append hash fist
+                    data = authHeader.serialize(data);      
+                    data = encodeMessage(data, keyString, useBase64);
                     myServer.sendVector(data);
                     done = true;
-                    cout << "auth success" << endl;
+                    cout << "auth success\n" << endl;
 
                 }
                 else
                 {
                     messageHeader authHeader{ FAILED, 0, 0 };
-                    data = authHeader.serialize(data);
-                    //append hash fist
+                    data = authHeader.serialize(data);     
+                    data = encodeMessage(data, keyString, useBase64);
                     myServer.sendVector(data);
-                    cout << "auth failure" << endl << endl;;
+                    cout << "auth failure\n" << endl << endl;;
 
                 }
             }
             attempts++;
         }//end attempts
 
+        std::vector<char>* recvVector = new std::vector<char>();
+
+         //get start and num packets
+        myServer.recvVector(data);
+        bool validHash = false;
+        data = decodeMessage(data, keyString, useBase64, validHash);
+        messageHeader sizeHeader;        
+        sizeHeader.deserialize(data);
+        int numberOfPacketsExpected = sizeHeader.dataLength;
+        int numberOfPacketsRecieved = 0;
+        
+
+
         attempts = 1;
         if (done)
         {
             //move on
             done = false;
-            std::vector<char>* recvVector = new std::vector<char>();
+
 
             while (!done && attempts <= maxAttempts)
             {
 
                 myServer.recvVector(data);
-
-                //The order for receiving is the opposite of sending
-                //1. (Optionally) Decode from base64
-                //2. Decrypt
-                //3. Verify the hash
                 bool validHash = false;
                 data = decodeMessage(data, keyString, useBase64, validHash);
 
 
                 if (!validHash) {
-                    cout << "hash wrong, exiting" << endl;
+                    cout << "\nHash wrong, retry requested." << endl;
 
                     messageHeader responseHeader{ FAILED, 0, 0 };
                     data = responseHeader.serialize(data);
+                    data = encodeMessage(data, keyString, useBase64);
                     myServer.sendVector(data);
                     attempts++;
                 }
@@ -386,7 +429,26 @@ int main()
                         attempts = 1;
                         messageHeader responseHeader{ SUCCESS, 0, 0 };
                         data = responseHeader.serialize(data);
+                        data = encodeMessage(data, keyString, useBase64);
                         myServer.sendVector(data);
+                        numberOfPacketsRecieved++;
+
+                        //fix format
+                        double progress = ((double)numberOfPacketsRecieved / (double)numberOfPacketsExpected) * 100;
+
+                        cout << "Progress: ";
+                        for (int x = 0; x < 100; x += 2)
+                        {
+                            if (x < progress)
+                            {
+                                cout << "=";
+                            }
+                            else
+                            {
+                                cout << " ";
+                            }
+                        }
+                        cout << ">\r";
                     }
                     else
                     {
@@ -398,12 +460,14 @@ int main()
             if (attempts < maxAttempts)
             {
                 vectorToFile(IOfileName, recvVector);
+                printf("\nFile transfer complete\n");
                 exit(0);
             }
             else
             {
-                cout << "packet corruption program done." << endl;
+                cout << "\npacket corruption program done." << endl;
             }
+          
             exit(1);
 
         }
@@ -415,6 +479,6 @@ int main()
         }
     }
 
-    //cout << usermanager.validate(name, pass)<<endl;
+
 
 }

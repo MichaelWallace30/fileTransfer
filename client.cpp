@@ -41,8 +41,9 @@ void client::clientThread()
             recvQueue.push(tempVector);
             g_mutex.unlock();
 
-
+#ifdef debugClient
             printf("server recv\n");
+#endif
         }
 
     }
@@ -101,7 +102,9 @@ void client::sendVector(std::vector<char> * buffer)
     {
         puts("Send failed");
     }
+#ifdef debugClient
     printf("message sent\n");
+#endif
 }
 
 std::vector<char>* client::recvVector(std::vector<char> * buffer)

@@ -25,8 +25,7 @@ class userAuth
 {
 public:
     char name[MAX_LENGTH];
-    char pass[MAX_LENGTH];
-    bool base64;
+    char pass[MAX_LENGTH];    
 
     void setName(std::string stringName)
     {
@@ -82,9 +81,7 @@ public:
         for (int x = 0; x < MAX_LENGTH; x++)
         {
             buffer->push_back(pass[x]);
-        }
-
-        buffer->push_back(base64);
+        }       
 
         return buffer;
     }
@@ -101,9 +98,7 @@ public:
         for (int x = 0; x < MAX_LENGTH; x++)
         {
             pass[x] = (*buffer)[offset++];
-        }
-
-        base64 = (*buffer)[offset++];
+        }        
     }
 };
 

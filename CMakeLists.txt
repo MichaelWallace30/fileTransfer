@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -pthread")
 get_filename_component(PARENT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
 
 
+configure_file(user.txt user.txt COPYONLY)
 
 
 add_executable(ftp

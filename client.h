@@ -1,6 +1,9 @@
 #ifndef CLINET_H
 #define CLIENT_H
 
+
+//#define debugClient
+
 #ifndef __linux
 	#include<winsock2.h>
 	#include<windows.h>

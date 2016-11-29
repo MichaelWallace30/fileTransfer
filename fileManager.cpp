@@ -22,8 +22,8 @@ std::string readKey(std::string fileName)
 
 
 std::vector<char>* fileToVector(std::string fileName)
-{
-
+{   
+    printf("\nLoading file please wait...\n\n");
     std::ifstream myFile(fileName, std::ios_base::binary | std::ios_base::in);
 
     if (myFile.is_open())
@@ -41,13 +41,14 @@ std::vector<char>* fileToVector(std::string fileName)
         }
         return newVector;
     }    
-    printf("failed to open exsisting file\n");
+    printf("\nfailed to open exsisting file\n");
     return NULL;    
 }
 
 
 bool vectorToFile(std::string fileName, std::vector<char> *buffer)
 {
+    printf("\nSaving file please wait...");
     std::ofstream yourFile(fileName, std::ios_base::binary | std::ios_base::out);
 
     if (yourFile.is_open())
@@ -66,6 +67,6 @@ bool vectorToFile(std::string fileName, std::vector<char> *buffer)
         yourFile.close();
         return true;
     }
-    printf("failed to open new file\n");
+    printf("\nfailed to open new file\n");
     return false;
 }

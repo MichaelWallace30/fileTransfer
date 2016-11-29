@@ -1,9 +1,13 @@
 #ifndef SERVER_H
 #define SERVER_H
+
+//#define debugServer
+
 #ifndef __linux
 	#include<winsock2.h>
 	#include<windows.h>
 	#include <WS2tcpip.h>
+
 	#pragma comment(lib,"ws2_32.lib") //Winsock Library
 #else
 	#include <errno.h>

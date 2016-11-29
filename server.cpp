@@ -99,8 +99,10 @@ void server::serverThread()
             recvQueue.push(tempVector);
             g_mutex.unlock();
 
-            
+#ifdef debugServer
             printf("server recv\n");
+#endif
+
         }
         
     }
@@ -113,7 +115,9 @@ void server::sendVector(std::vector<char> * buffer)
     {
         printf("Send failed\n");
     }
+#ifdef debugServer
     printf("server send\n");
+#endif
 }
 
 std::vector<char>* server::recvVector(std::vector<char> * buffer)
