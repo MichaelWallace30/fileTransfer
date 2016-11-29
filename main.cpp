@@ -145,7 +145,7 @@ int main()
 
         //create client
         client myClient;
-        myClient.init("127.0.0.1", 8888);
+        myClient.init(IP, 8888);
 
 
         int maxAttempts = 3;
@@ -323,7 +323,7 @@ int main()
     {
         //CREATE SERVER 
         server myServer;
-        myServer.init("127.0.0.1", 8888);
+        myServer.init(IP, 8888);
 
         int maxAttempts = 3;
         int attempts = 0;
