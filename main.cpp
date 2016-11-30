@@ -220,6 +220,8 @@ int main()
             buffer = encodeMessage(buffer, keyString, useBase64);                   
             myClient.sendVector(buffer);
 
+            myClient.recvVector(buffer);
+
             while (!done)
             {
                 int currentPacketSize = size - (maxPacketSize * (packetNumber - 1));
@@ -384,7 +386,7 @@ int main()
         int numberOfPacketsExpected = sizeHeader.dataLength;
         int numberOfPacketsRecieved = 0;
         
-
+        myServer.sendVector(data);
 
         attempts = 1;
         if (done)
