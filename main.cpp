@@ -211,16 +211,8 @@ int main()
             int packetNumber = 1;
             int attempts = 0;
             int maxAttempts = 3;
-
-            //send start and num packets
-            messageHeader sizeHeader;
-            sizeHeader.messageType = START;
-            sizeHeader.dataLength = numPackets;
-            sizeHeader.serialize(buffer);
-            buffer = encodeMessage(buffer, keyString, useBase64);                   
-            myClient.sendVector(buffer);
-
-            myClient.recvVector(buffer);
+      
+			
 
             while (!done)
             {
@@ -228,7 +220,7 @@ int main()
                 currentPacketSize = currentPacketSize > maxPacketSize ? maxPacketSize : currentPacketSize;
 
 
-                messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize };
+                messageHeader myHeader{ PACKET, (uint32_t)numPackets, (uint32_t)currentPacketSize };
                 buffer->clear();
                 buffer = myHeader.serialize(buffer);
                 for (int x = 0; x < currentPacketSize; x++)
@@ -378,16 +370,11 @@ int main()
         std::vector<char>* recvVector = new std::vector<char>();
 
          //get start and num packets
-        myServer.recvVector(data);
         bool validHash = false;
-        data = decodeMessage(data, keyString, useBase64, validHash);
-        messageHeader sizeHeader;        
-        sizeHeader.deserialize(data);
-        int numberOfPacketsExpected = sizeHeader.dataLength;
+
+		int numberOfPacketsExpected = 0;
         int numberOfPacketsRecieved = 0;
         
-        myServer.sendVector(data);
-
         attempts = 1;
         if (done)
         {
@@ -416,7 +403,7 @@ int main()
                 {
                     messageHeader recvHeader;
                     recvHeader.deserialize(data);
-
+					if (numberOfPacketsExpected == 0)numberOfPacketsExpected = recvHeader.packet;
                     if (recvHeader.messageType != END)
                     {
                         std::vector<char>* tempData = new std::vector<char>();
