@@ -29,7 +29,6 @@ string maxPacketString;
 //3. (Optionally) Base64 encode
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
-
     buffer = hash_and_append(buffer);
     buffer = encryption(buffer, key);
 
@@ -73,6 +72,7 @@ std::vector<char> * decodeMessage(std::vector<char>* buffer, std::string key, bo
 
 int main()
 {
+
     do
     {
         cout << "1. Server.\n"
@@ -348,7 +348,7 @@ int main()
                 userAuth myUserAuth;
                 myUserAuth.deserialize(data, HEADER_SIZE);
                 bool validUser = myUserManager.validate(myUserAuth.getName(), myUserAuth.getPass());
-                validUser = true;
+                //validUser = true;
 
                 if (validUser)
                 {                    

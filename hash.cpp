@@ -67,8 +67,8 @@ std::vector<char>* hash_and_append(std::vector<char>* s){
     std::string h = hashVector(s);
 	if (s->capacity() < h.length())s->reserve(s->size() + h.length());
 
-	for (int i = 0; i < h.size(); ++i) {
-		s->push_back(h.at(i));
+	for (char c: h) {
+		s->push_back(c);
 	}
 	
 	
