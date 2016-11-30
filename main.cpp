@@ -6,7 +6,6 @@
 #include "encryption.h"
 #include "hash.h"
 #include "fileManager.h"
-#include <cassert>
 #include <iomanip>
 #include <stdlib.h>
 
@@ -45,9 +44,7 @@ std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bo
     if (useBase64)
     {
         buffer = encode64(buffer);
-    }
-
-	Sleep(10);
+    }	
     return buffer;
 }
 
@@ -173,8 +170,7 @@ int main()
             data = myHeader.serialize(data);
             data = myUserAuth.serialize(data);
 
-            //send user name and data  
-			assert(data->capacity() > 0, "Empty capacity?");
+            //send user name and data  			
             data = encodeMessage(data, keyString, useBase64);
             myClient.sendVector(data);
 
