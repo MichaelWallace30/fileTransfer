@@ -92,7 +92,7 @@ std::vector<char>* server::recvVector(std::vector<char> * buffer)
 
 
     //deep copy
-    buffer->resize(0);
+    buffer->clear();
     for (int x = 0; x < read_size; x++)
     {
         buffer->push_back(bufferRecv[x]);

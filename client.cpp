@@ -77,7 +77,7 @@ std::vector<char>* client::recvVector(std::vector<char> * buffer)
 	while ((read_size = recv(sock, bufferRecv, MAX_BUFFER, 0)) < 0)
 	{
 	}
-    buffer->resize(0);
+    buffer->clear();
     for (int x = 0; x < read_size; x++)
     {
         buffer->push_back(bufferRecv[x]);

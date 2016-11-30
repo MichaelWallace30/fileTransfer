@@ -39,6 +39,7 @@ std::vector<char>* fileToVector(std::string fileName)
         {
             newVector->push_back(buffer[x]);
         }
+		printf("Done loading\n");
         return newVector;
     }    
     printf("\nfailed to open exsisting file\n");

@@ -27,7 +27,7 @@
 #include <vector>
 
 
-#define MAX_BUFFER 20000
+#define MAX_BUFFER 250000
 
 #pragma comment(lib,"ws2_32.lib") //Winsock Library
 class server

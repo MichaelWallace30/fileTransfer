@@ -6,7 +6,8 @@
 #include "encryption.h"
 #include "hash.h"
 #include "fileManager.h"
-
+#include <cassert>
+#include <iomanip>
 #include <stdlib.h>
 
 #include <iostream>
@@ -29,6 +30,7 @@ string maxPacketString;
 //3. (Optionally) Base64 encode
 std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bool useBase64)
 {
+
     buffer = hash_and_append(buffer);
     buffer = encryption(buffer, key);
 
@@ -44,6 +46,8 @@ std::vector<char> * encodeMessage(std::vector<char>* buffer, std::string key, bo
     {
         buffer = encode64(buffer);
     }
+
+	Sleep(10);
     return buffer;
 }
 
@@ -170,6 +174,7 @@ int main()
             data = myUserAuth.serialize(data);
 
             //send user name and data  
+			assert(data->capacity() > 0, "Empty capacity?");
             data = encodeMessage(data, keyString, useBase64);
             myClient.sendVector(data);
 
@@ -226,7 +231,7 @@ int main()
 
 
                 messageHeader myHeader{ PACKET, (uint32_t)packetNumber, (uint32_t)currentPacketSize };
-                buffer->resize(0);
+                buffer->clear();
                 buffer = myHeader.serialize(buffer);
                 for (int x = 0; x < currentPacketSize; x++)
                 {
@@ -246,7 +251,7 @@ int main()
                     myClient.sendVector(buffer);
 
                     //wait for response
-                    recvBuffer->resize(0);
+                    recvBuffer->clear();
                     myClient.recvVector(recvBuffer);
                     bool validHash = false;
                     recvBuffer = decodeMessage(recvBuffer, keyString, useBase64, validHash);
@@ -264,7 +269,7 @@ int main()
                         double progress = (double(packetNumber - 1) / double(numPackets)) * 100;
 
                         cout << "Progress: ";
-                        for (int x = 0; x < 100; x += 2)
+                        for (int x = 0; x <= 100; x += 2)
                         {
                             if (x < progress)
                             {
@@ -275,7 +280,9 @@ int main()
                                 cout << " ";
                             }
                         }
-                        cout << ">\r";
+                        cout << " >" ;
+						cout <<setw(3)<<setprecision(3)<< (int)progress;
+						cout << "%\r";
                         
                         
 
@@ -299,7 +306,7 @@ int main()
 
             if (done)
             {
-                data->resize(0);
+                data->clear();
                 messageHeader myHeader{ END, 0, 0 };
                 data = myHeader.serialize(data);
                 data = encodeMessage(data, keyString, useBase64);
@@ -436,19 +443,22 @@ int main()
                         //fix format
                         double progress = ((double)numberOfPacketsRecieved / (double)numberOfPacketsExpected) * 100;
 
-                        cout << "Progress: ";
-                        for (int x = 0; x < 100; x += 2)
-                        {
-                            if (x < progress)
-                            {
-                                cout << "=";
-                            }
-                            else
-                            {
-                                cout << " ";
-                            }
-                        }
-                        cout << ">\r";
+						cout << "Progress: ";
+						for (int x = 0; x <= 100; x += 2)
+						{
+							if (x < progress)
+							{
+								cout << "=";
+							}
+							else
+							{
+								cout << " ";
+							}
+						}
+						cout << "> ";
+						cout << setw(3) << setprecision(3) << (int)progress;
+						cout << "%\r";
+                        
                     }
                     else
                     {

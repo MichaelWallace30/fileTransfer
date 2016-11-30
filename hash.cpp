@@ -7,6 +7,7 @@
 #include <ctime>
 #include "hash.h"
 #include <stdint.h>
+#include <cassert>
 
 template<class T>
 T rrot(T x, unsigned int moves)
@@ -63,10 +64,17 @@ bool compare_salted(std::string salted_pass, std::string pass_to_check){
 
 //appends the hash to the vector
 std::vector<char>* hash_and_append(std::vector<char>* s){
+	//assert(s->capacity() > 0 && "Empty capacity!");
+	
     std::string h = hashVector(s);
-    for(char c : h){
-        s->push_back(c);
-    }
+	if (s->capacity() < h.length())s->reserve(s->size() + h.length());
+
+	for (int i = 0; i < h.size(); ++i) {
+		s->push_back(h.at(i));
+	}
+	
+	
+
     return s;
 }
 
@@ -92,7 +100,9 @@ std::string hashVector(std::vector<char>* s){
     }
     for(int i = 0; i < in.size(); ++i){
         h1 += (uint32_t)(pow(2, i%32)/in[i]) ^ rrot(in[i], i%64);
-        h2 += (uint32_t)(((uint32_t)(sqrt(2)*1000000) << 8)/(in[i]+1)) ^ rrot(i%64, in[i]);
+		double x = (in[i] + 1) ^ rrot(i % 64, in[i]);
+		if (x == 0.0)x = 1.0;
+        h2 += (uint32_t)(((uint32_t)(sqrt(2)*1000000) << 8)/x);
         h3 += rrot(in[i] ^ i, i-7 );
         h4 += -1 ^ in[i] ^ i;
     }

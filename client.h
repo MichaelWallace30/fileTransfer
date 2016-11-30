@@ -29,7 +29,7 @@
 
 
 
-#define MAX_BUFFER 20000
+#define MAX_BUFFER 250000
 
 class client
 {
