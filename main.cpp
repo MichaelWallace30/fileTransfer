@@ -14,7 +14,7 @@ using namespace std;
 char selection;
 bool isServer;
 bool useBase64 = false;
-bool forceFailure = false;
+int forceFailure = 0;
 string encryptKey;
 string IP;
 string IOfileName;
@@ -123,16 +123,19 @@ int main()
 
         do
         {
-            cout << "force error? \n";
-            cout << "1. Yes\n"
-                << "2. No\n";
+            cout << "Force failure? \n";
+            cout << "1. No failure\n"
+                << "2. Partial failure\n"
+                << "3. Full failure\n";
             cin >> selection;
             if (selection == '1')
-                forceFailure = true;
+                forceFailure = 0;
             else if (selection == '2')
-                forceFailure = false;
+                forceFailure = 1;
+            else if (selection == '3')
+                forceFailure = 2;
 
-        } while (selection != '1' && selection != '2');
+        } while (selection != '1' && selection != '2' && selection != '3');
     }
     std::string keyString = readKey(encryptKey);
 
@@ -280,6 +283,7 @@ int main()
                     else
                     {
                         cout << "\nCorrupt packet sent retyring." << endl;
+                        if (forceFailure == 1) forceFailure = 0;
                         attempts++;
                         packetSucces = false;
                     }

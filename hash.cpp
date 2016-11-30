@@ -50,14 +50,9 @@ std::string salt_and_hash(std::string s){
 bool compare_salted(std::string salted_pass, std::string pass_to_check){
     std::string salt = salted_pass.substr(0, 6);
     std::string h = salted_pass.substr(6);
-    std::cout << salt <<std::endl;
-    std::cout << h <<std::endl;
-    std::cout << pass_to_check << std::endl;
     std::vector<char> in;
     for(char c : pass_to_check) in.push_back(c);
     for(char c : salt) in.push_back(c);
-    for(char c : in) std::cout << c;
-    std::cout << std::endl;
     return hashVector(&in) == h;
 
 }
